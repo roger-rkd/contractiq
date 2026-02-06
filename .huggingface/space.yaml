@@ -1,0 +1,20 @@
+title: ContractIQ - AI Contract Analysis
+emoji: 📄
+colorFrom: blue
+colorTo: purple
+sdk: streamlit
+sdk_version: 1.53.1
+app_file: streamlit_app.py
+pinned: false
+license: mit
+python_version: 3.11
+tags:
+  - rag
+  - legal
+  - contract-analysis
+  - nlp
+  - llm
+  - fastapi
+  - streamlit
+  - citation
+  - hallucination-detection
