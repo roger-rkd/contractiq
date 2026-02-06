@@ -250,7 +250,22 @@ if "last_result" not in st.session_state:
 # ---------------------------------------------------------------------------
 st.markdown("""
 <style>
-/* Section headers with SVG icons */
+/* ---- Global: white background & dark text for visibility ---- */
+.stApp {
+    background-color: #ffffff !important;
+}
+section[data-testid="stSidebar"] {
+    background-color: #f8f9fa !important;
+}
+.stApp, .stApp p, .stApp span, .stApp li, .stApp label,
+.stApp .stMarkdown, .stApp .stText {
+    color: #1f2937 !important;
+}
+h1, h2, h3, h4, h5, h6 {
+    color: #111827 !important;
+}
+
+/* ---- Section headers with SVG icons ---- */
 .section-header {
     display: flex;
     align-items: center;
@@ -264,7 +279,7 @@ st.markdown("""
     flex-shrink: 0;
 }
 
-/* Step cards for the upload guide */
+/* ---- Step cards for the upload guide ---- */
 .step-row {
     display: flex;
     gap: 16px;
@@ -301,16 +316,27 @@ st.markdown("""
     color: #6b7280;
 }
 
-/* Feature list items in sidebar */
+/* ---- Responsive: stack step cards on mobile ---- */
+@media (max-width: 768px) {
+    .step-row {
+        flex-direction: column;
+    }
+    .section-header {
+        font-size: 1.1rem;
+    }
+}
+
+/* ---- Feature list items in sidebar ---- */
 .feature-item {
     display: flex;
     align-items: center;
     gap: 8px;
     padding: 3px 0;
     font-size: 0.92rem;
+    color: #1f2937;
 }
 
-/* Contract status badge */
+/* ---- Contract status badge ---- */
 .status-badge {
     display: inline-flex;
     align-items: center;
@@ -332,12 +358,13 @@ st.markdown("""
     border: 1px solid #fde68a;
 }
 
-/* Footer */
+/* ---- Footer ---- */
 .footer {
     text-align: center;
-    color: #9ca3af;
+    color: #6b7280 !important;
     font-size: 0.85rem;
     padding: 1rem 0;
+    line-height: 1.8;
 }
 .footer a {
     color: #6b7280;
@@ -345,6 +372,22 @@ st.markdown("""
 }
 .footer a:hover {
     text-decoration: underline;
+}
+.footer .tech-stack {
+    font-size: 0.78rem;
+    color: #9ca3af !important;
+    margin-top: 2px;
+}
+
+/* ---- Ask-another prompt ---- */
+.ask-another {
+    text-align: center;
+    padding: 18px 0 8px 0;
+    color: #6b7280;
+    font-size: 0.92rem;
+}
+.ask-another strong {
+    color: #374151;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -501,45 +544,33 @@ with tab2:
         help="Ask a question about the uploaded contract",
     )
 
-    # Ask button
-    ask_clicked = st.button("Ask", type="primary")
+    # Ask button + advanced options on one row
+    btn_col, opt_col = st.columns([1, 3])
+    with btn_col:
+        ask_clicked = st.button("Ask", type="primary", use_container_width=True)
+    with opt_col:
+        with st.expander("Advanced Options"):
+            top_k = st.slider(
+                "Number of context chunks to retrieve",
+                min_value=1,
+                max_value=10,
+                value=4,
+                help="More chunks = more context but slower",
+            )
+
     if ask_clicked and not question:
         st.warning("Please enter a question.")
-
-    # Advanced options
-    with st.expander("Advanced Options"):
-        top_k = st.slider(
-            "Number of context chunks to retrieve",
-            min_value=1,
-            max_value=10,
-            value=4,
-            help="More chunks = more context but slower",
-        )
 
     # ---- Determine which question to process ----
     trigger_question = None
     if ask_clicked and question:
         trigger_question = question
 
-    # Example questions
-    st.divider()
-    st.markdown(section_header("help-circle", "Example Questions"), unsafe_allow_html=True)
-    st.caption("Not sure what to ask? Click any question below to get an instant answer.")
-
-    examples = [
-        "What are the termination conditions?",
-        "What law governs this agreement?",
-        "How is personal data handled?",
-        "What are the payment terms?",
-        "What are the liability limits?",
-    ]
-
-    # 2-column layout, full question text, use_container_width
-    ex_cols = st.columns(2)
-    for i, example in enumerate(examples):
-        with ex_cols[i % 2]:
-            if st.button(example, key=f"example_{i}", use_container_width=True):
-                trigger_question = example
+    # ---- Also check for example-button clicks (rendered below) ----
+    # We use a session-state flag so example buttons at the bottom can trigger processing here
+    if st.session_state.get("_example_trigger"):
+        trigger_question = st.session_state._example_trigger
+        st.session_state._example_trigger = None
 
     # ---- Process the triggered question ----
     if trigger_question:
@@ -548,11 +579,41 @@ with tab2:
         st.session_state.last_question = trigger_question
         st.session_state.last_result = result
 
-    # ---- Display the last answer ----
+    # ---- Display the answer immediately below input (no scrolling) ----
     if st.session_state.last_result is not None:
         st.divider()
         st.markdown(section_header("zap", "Answer"), unsafe_allow_html=True)
         display_answer(st.session_state.last_question, st.session_state.last_result)
+
+        # "Ask another question" section with suggestions
+        st.markdown(
+            '<div class="ask-another"><strong>Want to explore more?</strong> '
+            'Try one of these questions or type your own above.</div>',
+            unsafe_allow_html=True,
+        )
+
+    # ---- Example / suggestion questions ----
+    examples = [
+        "What are the termination conditions?",
+        "What law governs this agreement?",
+        "How is personal data handled?",
+        "What are the payment terms?",
+        "What are the liability limits?",
+    ]
+
+    if st.session_state.last_result is None:
+        # First visit: show examples prominently
+        st.divider()
+        st.markdown(section_header("help-circle", "Example Questions"), unsafe_allow_html=True)
+        st.caption("Not sure what to ask? Click any question below to get an instant answer.")
+
+    # 2-column layout, full question text
+    ex_cols = st.columns(2)
+    for i, example in enumerate(examples):
+        with ex_cols[i % 2]:
+            if st.button(example, key=f"example_{i}", use_container_width=True):
+                st.session_state._example_trigger = example
+                st.rerun()
 
 
 # ===== TAB 3: API Docs =====
@@ -669,8 +730,9 @@ intent-aware retrieval, sub-clause chunking, production-grade API.
 st.divider()
 st.markdown(
     f'<div class="footer">'
-    f'ContractIQ v1.0.0 &middot; Built with {svg("heart", size=14, color="#ef4444", fill="#ef4444")} using RAG &middot; '
-    f'<a href="https://github.com/anthropics/claude-code" target="_blank">Powered by Claude Code</a>'
+    f'ContractIQ v1.0.0 &middot; Built with {svg("heart", size=14, color="#ef4444", fill="#ef4444")} by Rohit Kumar Dubey'
+    f'<div class="tech-stack">FastAPI &middot; Streamlit &middot; ChromaDB &middot; '
+    f'sentence-transformers &middot; Groq LLM &middot; pdfplumber</div>'
     f'</div>',
     unsafe_allow_html=True,
 )
