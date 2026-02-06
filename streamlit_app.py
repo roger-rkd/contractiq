@@ -216,10 +216,10 @@ def start_fastapi_server():
 
 
 def wait_for_api():
-    """Wait for FastAPI server to be ready."""
-    for _ in range(30):
+    """Wait for FastAPI server to be ready (up to 5 min for first-time model download)."""
+    for _ in range(300):
         try:
-            resp = requests.get(f"{API_BASE}/health", timeout=1)
+            resp = requests.get(f"{API_BASE}/health", timeout=2)
             if resp.status_code == 200:
                 return True
         except Exception:
