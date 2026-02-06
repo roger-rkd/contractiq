@@ -197,9 +197,10 @@ def display_answer(question, result):
 
     sources = result.get("sources", [])
     if sources:
-        st.markdown(section_header("book-open", "Sources"), unsafe_allow_html=True)
+        st.markdown("---")
+        st.markdown("**Sources**")
         for i, source in enumerate(sources, 1):
-            with st.expander(f"Source {i}: {source['clause_title']}"):
+            with st.expander(f"Source {i} - {source['clause_title']}"):
                 st.markdown(f"**Page:** {source['page_number']}")
                 st.markdown(f"**File:** {source['source_file']}")
 
@@ -258,14 +259,25 @@ st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
 
-/* ---- Poppins font everywhere ---- */
-html, body, .stApp, .stApp *,
-[class*="st-"], .stMarkdown, .stText,
+/* ---- Poppins font everywhere EXCEPT Material Icons ---- */
+html, body, .stApp,
+.stApp p, .stApp span, .stApp div, .stApp li, .stApp td, .stApp th,
+.stApp h1, .stApp h2, .stApp h3, .stApp h4, .stApp h5, .stApp h6,
+[class*="st-"]:not([class*="material"]),
+.stMarkdown, .stText,
 button, input, textarea, select, label,
 .stTabs [data-baseweb="tab"],
 [data-testid="stMetricValue"],
 [data-testid="stMetricLabel"] {
     font-family: 'Poppins', sans-serif !important;
+}
+/* Preserve Material Icons font for Streamlit's built-in icons */
+.material-symbols-rounded,
+.material-symbols-outlined,
+.material-icons,
+[data-testid="collapsedControl"] span,
+[data-testid="stSidebarCollapseButton"] span {
+    font-family: 'Material Symbols Rounded', 'Material Icons' !important;
 }
 
 /* ---- Global: white background everywhere, no black ---- */
@@ -274,8 +286,13 @@ button, input, textarea, select, label,
 }
 section[data-testid="stSidebar"] {
     background-color: #f8f9fa !important;
+    padding: 1.5rem 1rem !important;
 }
-section[data-testid="stSidebar"] * {
+section[data-testid="stSidebar"] p,
+section[data-testid="stSidebar"] span:not(.material-symbols-rounded):not(.material-symbols-outlined):not(.material-icons),
+section[data-testid="stSidebar"] li,
+section[data-testid="stSidebar"] label,
+section[data-testid="stSidebar"] div:not([data-testid="collapsedControl"]) {
     color: #1f2937 !important;
 }
 
@@ -289,19 +306,47 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* ---- Kill every dark/black background Streamlit adds ---- */
-/* File uploader */
-[data-testid="stFileUploader"],
+/* File uploader — enclosed in a visible box */
+[data-testid="stFileUploader"] {
+    background-color: #ffffff !important;
+    border: 1px solid #e5e7eb !important;
+    border-radius: 12px !important;
+    padding: 20px !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04) !important;
+}
 [data-testid="stFileUploader"] > div,
 [data-testid="stFileUploader"] section,
 [data-testid="stFileUploader"] label {
     background-color: #ffffff !important;
     color: #1f2937 !important;
 }
-[data-testid="stFileUploadDropzone"],
-[data-testid="stFileUploadDropzone"] * {
+[data-testid="stFileUploadDropzone"] {
     background-color: #f9fafb !important;
+    border: 2px dashed #d1d5db !important;
+    border-radius: 8px !important;
+    padding: 24px !important;
+}
+[data-testid="stFileUploadDropzone"] * {
     color: #374151 !important;
-    border-color: #d1d5db !important;
+}
+[data-testid="stFileUploadDropzone"] small {
+    color: #6b7280 !important;
+    font-size: 0.85rem !important;
+}
+/* Uploaded file name — ensure it's visible */
+[data-testid="stFileUploader"] [data-testid="stMarkdownContainer"],
+[data-testid="stFileUploader"] .uploadedFileName,
+[data-testid="stFileUploader"] .stUploadedFile,
+[data-testid="stFileUploader"] span,
+[data-testid="stFileUploader"] a {
+    color: #1f2937 !important;
+    opacity: 1 !important;
+}
+/* File size text */
+[data-testid="stFileUploader"] .uploadedFileData,
+[data-testid="stFileUploader"] small {
+    color: #6b7280 !important;
+    opacity: 1 !important;
 }
 
 /* Buttons — keep primary blue, make others white */
@@ -485,14 +530,27 @@ details, details > summary,
     .card { padding: 16px; }
 }
 
+/* ---- Sidebar spacing ---- */
+section[data-testid="stSidebar"] .block-container {
+    padding-top: 1rem !important;
+}
+section[data-testid="stSidebar"] .section-header {
+    font-size: 1.05rem;
+    margin: 0.8rem 0 0.4rem 0;
+}
+section[data-testid="stSidebar"] hr {
+    margin: 1rem 0 !important;
+}
+
 /* ---- Feature list items in sidebar ---- */
 .feature-item {
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 3px 0;
-    font-size: 0.92rem;
+    padding: 5px 0;
+    font-size: 0.88rem;
     color: #1f2937;
+    line-height: 1.4;
 }
 
 /* ---- Contract status badge ---- */
@@ -566,26 +624,43 @@ st.markdown("*Trustworthy AI contract analysis with citation-first answers*")
 # Sidebar
 # ---------------------------------------------------------------------------
 with st.sidebar:
-    st.markdown(section_header("info", "About"), unsafe_allow_html=True)
     st.markdown(
-        "**ContractIQ** analyzes legal contracts using retrieval-augmented generation. "
-        "Every answer cites specific clauses, and the system refuses to answer "
-        "when information is not in the contract."
+        f'<div style="text-align:center;margin-bottom:12px;">'
+        f'{svg("file-text", size=28, color="#2563eb")}'
+        f'<div style="font-size:1.1rem;font-weight:600;color:#1f2937;margin-top:4px;">ContractIQ</div>'
+        f'</div>',
+        unsafe_allow_html=True,
+    )
+
+    st.markdown(
+        '<p style="font-size:0.85rem;color:#4b5563;line-height:1.6;margin:0;">'
+        'AI-powered contract analysis with retrieval-augmented generation. '
+        'Every answer cites specific clauses.</p>',
+        unsafe_allow_html=True,
     )
 
     st.divider()
 
-    st.markdown(section_header("book-open", "How It Works"), unsafe_allow_html=True)
-    st.markdown("""
-1. **Upload** a PDF contract
-2. **Wait** for automatic processing
-3. **Ask** questions about the contract
-4. **Verify** the cited clauses in each answer
-    """)
+    st.markdown("**How It Works**")
+    steps = [
+        ("1", "Upload a PDF contract"),
+        ("2", "Wait for processing"),
+        ("3", "Ask questions"),
+        ("4", "Verify cited clauses"),
+    ]
+    for num, step in steps:
+        st.markdown(
+            f'<div style="display:flex;align-items:center;gap:8px;padding:3px 0;font-size:0.85rem;">'
+            f'<span style="display:inline-flex;align-items:center;justify-content:center;'
+            f'width:22px;height:22px;border-radius:50%;background:#2563eb;color:#fff;'
+            f'font-size:0.72rem;font-weight:600;flex-shrink:0;">{num}</span>'
+            f'<span style="color:#374151;">{step}</span></div>',
+            unsafe_allow_html=True,
+        )
 
     st.divider()
 
-    st.markdown(section_header("shield", "Features"), unsafe_allow_html=True)
+    st.markdown("**Features**")
     features = [
         "Citation enforcement",
         "Hallucination blocking",
@@ -595,7 +670,7 @@ with st.sidebar:
     ]
     for feat in features:
         st.markdown(
-            f'<div class="feature-item">{svg("check-circle", size=16, color="#16a34a")} {feat}</div>',
+            f'<div class="feature-item">{svg("check-circle", size=14, color="#16a34a")} {feat}</div>',
             unsafe_allow_html=True,
         )
 
@@ -800,7 +875,7 @@ st.markdown(
 )
 
 with st.expander("API Documentation"):
-    st.markdown(section_header("hash", "Endpoints", size=20), unsafe_allow_html=True)
+    st.markdown("#### Endpoints")
 
     st.markdown("""
 The FastAPI backend provides the following endpoints:
@@ -865,7 +940,7 @@ POST /api/v1/ask
 
     st.divider()
 
-    st.markdown(section_header("shield", "Error Handling", size=20), unsafe_allow_html=True)
+    st.markdown("#### Error Handling")
     st.markdown("""
 All errors return a consistent format:
 ```json
@@ -876,7 +951,7 @@ All errors return a consistent format:
 ```
     """)
 
-    st.markdown(section_header("target", "Citation Format", size=20), unsafe_allow_html=True)
+    st.markdown("#### Citation Format")
     st.markdown("""
 Answers always follow citation-first format:
 - **Valid:** "According to [Clause X], ..."
