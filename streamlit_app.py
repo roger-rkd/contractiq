@@ -121,6 +121,7 @@ _ICON_PATHS = {
         '<line x1="10" y1="3" x2="8" y2="21"/>'
         '<line x1="16" y1="3" x2="14" y2="21"/>'
     ),
+    "chevron-down": '<polyline points="6 9 12 15 18 9"/>',
 }
 
 
@@ -246,23 +247,122 @@ if "last_result" not in st.session_state:
 
 
 # ---------------------------------------------------------------------------
-# Custom CSS
+# Custom CSS — Poppins font, white backgrounds, responsive
 # ---------------------------------------------------------------------------
 st.markdown("""
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
-/* ---- Global: white background & dark text for visibility ---- */
+/* ---- Poppins font everywhere ---- */
+html, body, .stApp, .stApp *,
+[class*="st-"], .stMarkdown, .stText,
+button, input, textarea, select, label,
+.stTabs [data-baseweb="tab"],
+[data-testid="stMetricValue"],
+[data-testid="stMetricLabel"] {
+    font-family: 'Poppins', sans-serif !important;
+}
+
+/* ---- Global: white background everywhere, no black ---- */
 .stApp {
     background-color: #ffffff !important;
 }
 section[data-testid="stSidebar"] {
     background-color: #f8f9fa !important;
 }
+section[data-testid="stSidebar"] * {
+    color: #1f2937 !important;
+}
+
+/* Force all text to dark on white */
 .stApp, .stApp p, .stApp span, .stApp li, .stApp label,
 .stApp .stMarkdown, .stApp .stText {
     color: #1f2937 !important;
 }
 h1, h2, h3, h4, h5, h6 {
     color: #111827 !important;
+}
+
+/* ---- Kill every dark/black background Streamlit adds ---- */
+/* File uploader */
+[data-testid="stFileUploader"],
+[data-testid="stFileUploader"] > div,
+[data-testid="stFileUploader"] section,
+[data-testid="stFileUploader"] label {
+    background-color: #ffffff !important;
+    color: #1f2937 !important;
+}
+[data-testid="stFileUploadDropzone"],
+[data-testid="stFileUploadDropzone"] * {
+    background-color: #f9fafb !important;
+    color: #374151 !important;
+    border-color: #d1d5db !important;
+}
+
+/* Buttons — keep primary blue, make others white */
+button[kind="secondary"],
+.stButton > button:not([kind="primary"]) {
+    background-color: #ffffff !important;
+    color: #374151 !important;
+    border: 1px solid #d1d5db !important;
+}
+button[kind="secondary"]:hover,
+.stButton > button:not([kind="primary"]):hover {
+    background-color: #f3f4f6 !important;
+    border-color: #9ca3af !important;
+}
+
+/* Expanders */
+[data-testid="stExpander"],
+[data-testid="stExpander"] > div {
+    background-color: #ffffff !important;
+    color: #1f2937 !important;
+}
+details, details > summary,
+.streamlit-expanderHeader {
+    background-color: #ffffff !important;
+    color: #374151 !important;
+}
+
+/* Metrics */
+[data-testid="stMetric"],
+[data-testid="stMetricValue"],
+[data-testid="stMetricLabel"] {
+    background-color: #ffffff !important;
+    color: #1f2937 !important;
+}
+[data-testid="stMetricValue"] {
+    color: #111827 !important;
+    font-weight: 600 !important;
+}
+
+/* Tabs */
+.stTabs [data-baseweb="tab-list"] {
+    background-color: #ffffff !important;
+}
+.stTabs [data-baseweb="tab"] {
+    background-color: #ffffff !important;
+    color: #374151 !important;
+    font-weight: 500 !important;
+}
+.stTabs [aria-selected="true"] {
+    color: #2563eb !important;
+    font-weight: 600 !important;
+}
+
+/* Text input */
+.stTextInput > div > div {
+    background-color: #ffffff !important;
+    color: #1f2937 !important;
+    border-color: #d1d5db !important;
+}
+.stTextInput input {
+    color: #1f2937 !important;
+    background-color: #ffffff !important;
+}
+
+/* Slider */
+.stSlider label, .stSlider span {
+    color: #374151 !important;
 }
 
 /* ---- Section headers with SVG icons ---- */
@@ -279,47 +379,65 @@ h1, h2, h3, h4, h5, h6 {
     flex-shrink: 0;
 }
 
-/* ---- Step cards for the upload guide ---- */
-.step-row {
+/* ---- How-it-works flow (horizontal arrow steps) ---- */
+.flow-row {
     display: flex;
-    gap: 16px;
-    margin: 1rem 0 1.5rem 0;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    margin: 1.5rem 0;
+    flex-wrap: wrap;
 }
-.step-card {
-    flex: 1;
-    padding: 20px 16px;
-    border-radius: 10px;
-    border: 1px solid #e5e7eb;
-    background: #f9fafb;
+.flow-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     text-align: center;
+    padding: 16px 20px;
+    min-width: 140px;
+    flex: 1;
 }
-.step-number {
+.flow-step .flow-num {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 32px;
-    height: 32px;
+    width: 36px;
+    height: 36px;
     border-radius: 50%;
-    background: #3b82f6;
+    background: #2563eb;
     color: #fff;
     font-weight: 700;
-    font-size: 0.95rem;
+    font-size: 1rem;
     margin-bottom: 10px;
 }
-.step-card .step-title {
+.flow-step .flow-title {
     font-weight: 600;
     color: #1f2937;
+    font-size: 0.95rem;
     margin-bottom: 4px;
 }
-.step-card .step-desc {
-    font-size: 0.85rem;
+.flow-step .flow-desc {
+    font-size: 0.82rem;
     color: #6b7280;
+    max-width: 180px;
+}
+.flow-arrow {
+    font-size: 1.5rem;
+    color: #9ca3af;
+    padding: 0 4px;
+    align-self: center;
+    margin-top: -20px;
 }
 
-/* ---- Responsive: stack step cards on mobile ---- */
+/* ---- Responsive ---- */
 @media (max-width: 768px) {
-    .step-row {
+    .flow-row {
         flex-direction: column;
+        gap: 4px;
+    }
+    .flow-arrow {
+        transform: rotate(90deg);
+        margin-top: 0;
     }
     .section-header {
         font-size: 1.1rem;
@@ -363,15 +481,8 @@ h1, h2, h3, h4, h5, h6 {
     text-align: center;
     color: #6b7280 !important;
     font-size: 0.85rem;
-    padding: 1rem 0;
+    padding: 1rem 0 0.5rem 0;
     line-height: 1.8;
-}
-.footer a {
-    color: #6b7280;
-    text-decoration: none;
-}
-.footer a:hover {
-    text-decoration: underline;
 }
 .footer .tech-stack {
     font-size: 0.78rem;
@@ -444,38 +555,46 @@ with st.sidebar:
 
 
 # ---------------------------------------------------------------------------
-# Main Content — Tabs
+# Main Content — Two Tabs (API Docs moved to footer)
 # ---------------------------------------------------------------------------
-tab1, tab2, tab3 = st.tabs(["Upload Contract", "Ask Questions", "API Docs"])
+tab1, tab2 = st.tabs(["Upload Contract", "Ask Questions"])
 
 
 # ===== TAB 1: Upload Contract =====
 with tab1:
-    st.markdown(section_header("upload-cloud", "Upload Contract PDF"), unsafe_allow_html=True)
+    st.markdown(section_header("upload-cloud", "Get Started"), unsafe_allow_html=True)
+    st.markdown(
+        "Upload a contract PDF and start asking questions in seconds. "
+        "Here's how it works:"
+    )
 
-    # Step-by-step guide
+    # Horizontal arrow-connected flow
     st.markdown(f"""
-    <div class="step-row">
-        <div class="step-card">
-            <div class="step-number">1</div>
-            <div style="margin-bottom:6px;">{svg("upload-cloud", size=28, color="#3b82f6")}</div>
-            <div class="step-title">Upload PDF</div>
-            <div class="step-desc">Select a contract PDF from your device using the file picker below.</div>
+    <div class="flow-row">
+        <div class="flow-step">
+            <div class="flow-num">1</div>
+            <div style="margin-bottom:6px;">{svg("upload-cloud", size=28, color="#2563eb")}</div>
+            <div class="flow-title">You upload a PDF</div>
+            <div class="flow-desc">Select any contract PDF from your device.</div>
         </div>
-        <div class="step-card">
-            <div class="step-number">2</div>
-            <div style="margin-bottom:6px;">{svg("clock", size=28, color="#3b82f6")}</div>
-            <div class="step-title">Processing</div>
-            <div class="step-desc">The system extracts text, detects clauses, and builds a searchable index.</div>
+        <div class="flow-arrow">&rarr;</div>
+        <div class="flow-step">
+            <div class="flow-num">2</div>
+            <div style="margin-bottom:6px;">{svg("clock", size=28, color="#2563eb")}</div>
+            <div class="flow-title">We process it</div>
+            <div class="flow-desc">Text extraction, clause detection, and indexing happen automatically.</div>
         </div>
-        <div class="step-card">
-            <div class="step-number">3</div>
-            <div style="margin-bottom:6px;">{svg("message-circle", size=28, color="#3b82f6")}</div>
-            <div class="step-title">Ask Questions</div>
-            <div class="step-desc">Switch to the Ask Questions tab and get cited answers from the contract.</div>
+        <div class="flow-arrow">&rarr;</div>
+        <div class="flow-step">
+            <div class="flow-num">3</div>
+            <div style="margin-bottom:6px;">{svg("message-circle", size=28, color="#2563eb")}</div>
+            <div class="flow-title">You ask questions</div>
+            <div class="flow-desc">Get cited answers grounded in the actual contract text.</div>
         </div>
     </div>
     """, unsafe_allow_html=True)
+
+    st.divider()
 
     uploaded_file = st.file_uploader(
         "Choose a PDF file",
@@ -567,7 +686,6 @@ with tab2:
         trigger_question = question
 
     # ---- Also check for example-button clicks (rendered below) ----
-    # We use a session-state flag so example buttons at the bottom can trigger processing here
     if st.session_state.get("_example_trigger"):
         trigger_question = st.session_state._example_trigger
         st.session_state._example_trigger = None
@@ -579,13 +697,13 @@ with tab2:
         st.session_state.last_question = trigger_question
         st.session_state.last_result = result
 
-    # ---- Display the answer immediately below input (no scrolling) ----
+    # ---- Display the answer immediately below input ----
     if st.session_state.last_result is not None:
         st.divider()
         st.markdown(section_header("zap", "Answer"), unsafe_allow_html=True)
         display_answer(st.session_state.last_question, st.session_state.last_result)
 
-        # "Ask another question" section with suggestions
+        # "Ask another question" prompt
         st.markdown(
             '<div class="ask-another"><strong>Want to explore more?</strong> '
             'Try one of these questions or type your own above.</div>',
@@ -602,7 +720,6 @@ with tab2:
     ]
 
     if st.session_state.last_result is None:
-        # First visit: show examples prominently
         st.divider()
         st.markdown(section_header("help-circle", "Example Questions"), unsafe_allow_html=True)
         st.caption("Not sure what to ask? Click any question below to get an instant answer.")
@@ -616,14 +733,24 @@ with tab2:
                 st.rerun()
 
 
-# ===== TAB 3: API Docs =====
-with tab3:
-    st.markdown(section_header("code", "API Documentation"), unsafe_allow_html=True)
+# ---------------------------------------------------------------------------
+# Footer — credit + API Docs collapsible
+# ---------------------------------------------------------------------------
+st.divider()
+st.markdown(
+    f'<div class="footer">'
+    f'ContractIQ v1.0.0 &middot; Built with {svg("heart", size=14, color="#ef4444", fill="#ef4444")} by Rohit Kumar Dubey'
+    f'<div class="tech-stack">FastAPI &middot; Streamlit &middot; ChromaDB &middot; '
+    f'sentence-transformers &middot; Groq LLM &middot; pdfplumber</div>'
+    f'</div>',
+    unsafe_allow_html=True,
+)
 
-    st.markdown(f"""
-{section_header("hash", "Endpoints", size=20)}
+with st.expander("API Documentation"):
+    st.markdown(section_header("hash", "Endpoints", size=20), unsafe_allow_html=True)
 
-The FastAPI backend is running internally and provides the following endpoints:
+    st.markdown("""
+The FastAPI backend provides the following endpoints:
 
 **Health Check**
 ```
@@ -641,12 +768,12 @@ POST /api/v1/upload
 
 **Response:**
 ```json
-{{
+{
   "message": "Contract uploaded and processed successfully",
   "filename": "contract.pdf",
   "chunks_created": 45,
   "pages_processed": 12
-}}
+}
 ```
 
 **Ask Question**
@@ -655,37 +782,37 @@ POST /api/v1/ask
 ```
 **Body:** `application/json`
 ```json
-{{
+{
   "question": "What are the termination conditions?",
   "top_k": 4
-}}
+}
 ```
 
 **Response:**
 ```json
-{{
+{
   "question": "What are the termination conditions?",
   "answer": "According to [Clause 4], the termination conditions are...",
   "sources": [
-    {{
+    {
       "clause_title": "TERMINATION",
       "page_number": 8,
       "source_file": "contract.pdf"
-    }}
+    }
   ],
   "latency_sec": 0.583
-}}
+}
 ```
-    """, unsafe_allow_html=True)
+    """)
 
     st.markdown(
-        "**Full API Documentation** — Swagger UI at `/api/docs` and ReDoc at `/api/redoc` "
+        "**Full API Documentation** -- Swagger UI at `/api/docs` and ReDoc at `/api/redoc` "
         "(available when running locally)."
     )
 
     st.divider()
 
-    st.markdown(section_header("shield", "Error Handling"), unsafe_allow_html=True)
+    st.markdown(section_header("shield", "Error Handling", size=20), unsafe_allow_html=True)
     st.markdown("""
 All errors return a consistent format:
 ```json
@@ -696,43 +823,9 @@ All errors return a consistent format:
 ```
     """)
 
-    st.divider()
-
-    st.markdown(section_header("target", "Citation Format"), unsafe_allow_html=True)
+    st.markdown(section_header("target", "Citation Format", size=20), unsafe_allow_html=True)
     st.markdown("""
 Answers always follow citation-first format:
 - **Valid:** "According to [Clause X], ..."
 - **Refusal:** "INSUFFICIENT_INFORMATION: The contract does not specify this."
     """)
-
-    st.divider()
-
-    st.markdown(section_header("layers", "Technology Stack"), unsafe_allow_html=True)
-    st.markdown("""
-| Component | Technology |
-|-----------|-----------|
-| **Frontend** | Streamlit |
-| **Backend** | FastAPI |
-| **Vector DB** | ChromaDB |
-| **Embeddings** | sentence-transformers |
-| **LLM** | Groq (llama-3.1-8b-instant) |
-    """)
-
-    st.markdown("""
-**Key capabilities:** Citation-first answers, hallucination blocking,
-intent-aware retrieval, sub-clause chunking, production-grade API.
-    """)
-
-
-# ---------------------------------------------------------------------------
-# Footer
-# ---------------------------------------------------------------------------
-st.divider()
-st.markdown(
-    f'<div class="footer">'
-    f'ContractIQ v1.0.0 &middot; Built with {svg("heart", size=14, color="#ef4444", fill="#ef4444")} by Rohit Kumar Dubey'
-    f'<div class="tech-stack">FastAPI &middot; Streamlit &middot; ChromaDB &middot; '
-    f'sentence-transformers &middot; Groq LLM &middot; pdfplumber</div>'
-    f'</div>',
-    unsafe_allow_html=True,
-)
