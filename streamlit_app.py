@@ -122,6 +122,10 @@ _ICON_PATHS = {
         '<line x1="16" y1="3" x2="14" y2="21"/>'
     ),
     "chevron-down": '<polyline points="6 9 12 15 18 9"/>',
+    "arrow-down": (
+        '<line x1="12" y1="5" x2="12" y2="19"/>'
+        '<polyline points="19 12 12 19 5 12"/>'
+    ),
 }
 
 
@@ -169,8 +173,9 @@ def call_api(question, top_k=4):
 def display_answer(question, result):
     """Render the answer and sources for a given result dict."""
     st.markdown(
-        f'<div style="border-left:3px solid #6b7280;padding:4px 12px;color:#374151;'
-        f'margin-bottom:12px;font-style:italic;">{question}</div>',
+        f'<div class="card" style="border-left:4px solid #2563eb;">'
+        f'<div style="padding:4px 0;color:#374151;font-style:italic;margin-bottom:8px;">'
+        f'{svg("message-circle", size=16, color="#2563eb")} {question}</div></div>',
         unsafe_allow_html=True,
     )
 
@@ -380,6 +385,23 @@ details, details > summary,
     flex-shrink: 0;
 }
 
+/* ---- Card / Box styling ---- */
+.card {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+.card-muted {
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 16px;
+}
+
 /* ---- How-it-works flow (horizontal arrow steps) ---- */
 .flow-row {
     display: flex;
@@ -388,6 +410,10 @@ details, details > summary,
     gap: 0;
     margin: 1.5rem 0;
     flex-wrap: wrap;
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 24px 16px;
 }
 .flow-step {
     display: flex;
@@ -397,6 +423,10 @@ details, details > summary,
     padding: 16px 20px;
     min-width: 140px;
     flex: 1;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
 }
 .flow-step .flow-num {
     display: inline-flex;
@@ -423,26 +453,36 @@ details, details > summary,
     max-width: 180px;
 }
 .flow-arrow {
-    font-size: 1.5rem;
-    color: #9ca3af;
-    padding: 0 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 8px;
     align-self: center;
-    margin-top: -20px;
 }
+.flow-arrow svg {
+    flex-shrink: 0;
+}
+/* Hide the arrow-down variant on desktop, show on mobile */
+.flow-arrow .arrow-down-mobile { display: none; }
+.flow-arrow .arrow-right-desktop { display: inline; }
 
 /* ---- Responsive ---- */
 @media (max-width: 768px) {
     .flow-row {
         flex-direction: column;
-        gap: 4px;
+        gap: 8px;
+        padding: 16px 12px;
     }
-    .flow-arrow {
-        transform: rotate(90deg);
-        margin-top: 0;
+    .flow-step {
+        min-width: unset;
+        width: 100%;
     }
+    .flow-arrow .arrow-right-desktop { display: none; }
+    .flow-arrow .arrow-down-mobile { display: inline; }
     .section-header {
         font-size: 1.1rem;
     }
+    .card { padding: 16px; }
 }
 
 /* ---- Feature list items in sidebar ---- */
@@ -484,6 +524,11 @@ details, details > summary,
     font-size: 0.85rem;
     padding: 1rem 0 0.5rem 0;
     line-height: 1.8;
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 20px;
+    margin-top: 8px;
 }
 .footer .tech-stack {
     font-size: 0.78rem;
@@ -565,8 +610,10 @@ tab1, tab2 = st.tabs(["Upload Contract", "Ask Questions"])
 with tab1:
     st.markdown(section_header("upload-cloud", "Get Started"), unsafe_allow_html=True)
     st.markdown(
-        "Upload a contract PDF and start asking questions in seconds. "
-        "Here's how it works:"
+        '<div class="card-muted" style="margin-top:8px;">'
+        '<p style="margin:0 0 4px 0;">Upload a contract PDF and start asking questions in seconds. '
+        "Here's how it works:</p></div>",
+        unsafe_allow_html=True,
     )
 
     # Horizontal arrow-connected flow
@@ -578,14 +625,14 @@ with tab1:
             <div class="flow-title">You upload a PDF</div>
             <div class="flow-desc">Select any contract PDF from your device.</div>
         </div>
-        <div class="flow-arrow">&rarr;</div>
+        <div class="flow-arrow"><span class="arrow-right-desktop">{svg("arrow-right", size=24, color="#9ca3af")}</span><span class="arrow-down-mobile">{svg("arrow-down", size=24, color="#9ca3af")}</span></div>
         <div class="flow-step">
             <div class="flow-num">2</div>
             <div style="margin-bottom:6px;">{svg("clock", size=28, color="#2563eb")}</div>
             <div class="flow-title">We process it</div>
             <div class="flow-desc">Text extraction, clause detection, and indexing happen automatically.</div>
         </div>
-        <div class="flow-arrow">&rarr;</div>
+        <div class="flow-arrow"><span class="arrow-right-desktop">{svg("arrow-right", size=24, color="#9ca3af")}</span><span class="arrow-down-mobile">{svg("arrow-down", size=24, color="#9ca3af")}</span></div>
         <div class="flow-step">
             <div class="flow-num">3</div>
             <div style="margin-bottom:6px;">{svg("message-circle", size=28, color="#2563eb")}</div>
@@ -636,26 +683,27 @@ with tab1:
 # ===== TAB 2: Ask Questions =====
 with tab2:
     st.markdown(section_header("message-circle", "Ask Questions"), unsafe_allow_html=True)
-    st.markdown(
-        "Ask any question about your uploaded contract. "
-        "Answers will cite specific clauses from the document."
-    )
-
-    # Contract status badge
+    # Contract status + description card
     if st.session_state.contract_uploaded:
-        st.markdown(
+        status_html = (
             f'<div class="status-badge loaded">'
             f'{svg("check-circle", size=16, color="#065f46")} '
-            f'Contract loaded: {st.session_state.contract_filename}</div>',
-            unsafe_allow_html=True,
+            f'Contract loaded: {st.session_state.contract_filename}</div>'
         )
     else:
-        st.markdown(
+        status_html = (
             f'<div class="status-badge empty">'
             f'{svg("alert-triangle", size=16, color="#92400e")} '
-            f'No contract uploaded yet. Upload one in the Upload Contract tab.</div>',
-            unsafe_allow_html=True,
+            f'No contract uploaded yet. Upload one in the Upload Contract tab.</div>'
         )
+
+    st.markdown(
+        f'<div class="card">'
+        f'<p style="margin:0 0 10px 0;">Ask any question about your uploaded contract. '
+        f'Answers will cite specific clauses from the document.</p>'
+        f'{status_html}</div>',
+        unsafe_allow_html=True,
+    )
 
     # Question input
     question = st.text_input(
@@ -723,7 +771,11 @@ with tab2:
     if st.session_state.last_result is None:
         st.divider()
         st.markdown(section_header("help-circle", "Example Questions"), unsafe_allow_html=True)
-        st.caption("Not sure what to ask? Click any question below to get an instant answer.")
+        st.markdown(
+            '<div class="card-muted"><p style="margin:0;font-size:0.9rem;color:#6b7280;">'
+            'Not sure what to ask? Click any question below to get an instant answer.</p></div>',
+            unsafe_allow_html=True,
+        )
 
     # 2-column layout, full question text
     ex_cols = st.columns(2)
