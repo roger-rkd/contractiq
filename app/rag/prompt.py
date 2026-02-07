@@ -52,15 +52,20 @@ def build_citation_first_prompt(question: str, contexts: list[dict]) -> list[dic
 
         "4. FORMAT REQUIREMENT:\n"
         "   - Start with citation: \"According to [Clause X], ...\"\n"
-        "   - State the facts from that clause\n"
-        "   - If multiple clauses: cite each one separately\n"
-        "   - End with a summary if needed\n\n"
+        "   - Use BULLET POINTS to list each distinct point or condition\n"
+        "   - Each bullet should be a concise, self-contained point\n"
+        "   - If multiple clauses are relevant, cite each clause in its own bullet\n"
+        "   - NEVER write long paragraphs — always break information into bullets\n"
+        "   - End with a brief one-line summary if needed\n\n"
 
         "EXAMPLES:\n\n"
 
         "Good answer:\n"
-        "\"According to [Clause 2], the termination notice period is 30 days. "
-        "Based on [Clause 3], termination can occur if payment is not received within this period.\"\n\n"
+        "\"According to [Clause 2], the Company may terminate this Agreement if:\n"
+        "- The Client fails to make payment in accordance with the agreed terms\n"
+        "- The Client commits a persistent breach of the Agreement\n"
+        "- The Client is subject to a Change of Control Event\n\n"
+        "Based on [Clause 3], the notice period for termination is 30 days.\"\n\n"
 
         "Bad answer (NEVER do this):\n"
         "\"The termination period is typically 30 days.\" ❌ (No citation)\n"
@@ -78,6 +83,7 @@ def build_citation_first_prompt(question: str, contexts: list[dict]) -> list[dic
         "INSTRUCTIONS:\n"
         "- If the answer exists in the clauses above, provide it with citations\n"
         "- Start your answer with \"According to [Clause X]...\"\n"
+        "- Use bullet points to list each distinct condition, term, or fact\n"
         "- If the answer does NOT exist, respond: \"INSUFFICIENT_INFORMATION: The contract does not specify this.\"\n\n"
         "ANSWER:"
     )
