@@ -188,19 +188,23 @@ h1, h2, h3, h4, h5, h6 {
     color: #6b7280 !important;
     font-size: 0.85rem !important;
 }
-/* Uploaded file name — ensure it's visible */
-[data-testid="stFileUploader"] [data-testid="stMarkdownContainer"],
-[data-testid="stFileUploader"] .uploadedFileName,
-[data-testid="stFileUploader"] .stUploadedFile,
+/* Uploaded file name — force fully visible */
 [data-testid="stFileUploader"] span,
-[data-testid="stFileUploader"] a {
+[data-testid="stFileUploader"] a,
+[data-testid="stFileUploader"] p,
+[data-testid="stFileUploader"] div {
     color: #1f2937 !important;
     opacity: 1 !important;
+    -webkit-text-fill-color: #1f2937 !important;
 }
-/* File size text */
-[data-testid="stFileUploader"] .uploadedFileData,
-[data-testid="stFileUploader"] small {
+[data-testid="stFileUploader"] small,
+[data-testid="stFileUploader"] [data-testid="stFileUploaderFileSize"] {
     color: #6b7280 !important;
+    opacity: 1 !important;
+    -webkit-text-fill-color: #6b7280 !important;
+}
+/* The delete/remove button icon */
+[data-testid="stFileUploader"] button {
     opacity: 1 !important;
 }
 
@@ -335,6 +339,26 @@ details, details > summary,
     .card { padding: 16px; }
 }
 
+/* ---- Sidebar collapse/expand button ---- */
+[data-testid="collapsedControl"],
+[data-testid="stSidebarCollapseButton"] {
+    background-color: #f8f9fa !important;
+    border: 1px solid #d1d5db !important;
+    border-radius: 6px !important;
+    color: #374151 !important;
+}
+[data-testid="collapsedControl"]:hover,
+[data-testid="stSidebarCollapseButton"]:hover {
+    background-color: #e5e7eb !important;
+}
+/* The icon inside the sidebar button */
+[data-testid="collapsedControl"] span,
+[data-testid="stSidebarCollapseButton"] span,
+[data-testid="stSidebarCollapse"] button {
+    color: #374151 !important;
+    -webkit-text-fill-color: #374151 !important;
+}
+
 /* ---- Sidebar spacing ---- */
 section[data-testid="stSidebar"] .block-container {
     padding-top: 1rem !important;
@@ -410,6 +434,17 @@ with st.sidebar:
 # ---------------------------------------------------------------------------
 tab1, tab2 = st.tabs(["Upload Contract", "Ask Questions"])
 
+# Handle tab switch request from upload page
+if st.session_state.get("switch_to_ask"):
+    st.session_state.switch_to_ask = False
+    st.markdown(
+        '<script>'
+        'const tabs = window.parent.document.querySelectorAll("[data-baseweb=\\"tab\\"]");'
+        'if (tabs.length >= 2) tabs[1].click();'
+        '</script>',
+        unsafe_allow_html=True,
+    )
+
 
 # ===== TAB 1: Upload Contract =====
 with tab1:
@@ -479,6 +514,9 @@ with tab1:
                         st.metric("Pages Processed", result["pages_processed"])
 
                     st.info("You can now ask questions about this contract in the **Ask Questions** tab.")
+                    if st.button("Ask Questions Now →", type="primary"):
+                        st.session_state.switch_to_ask = True
+                        st.rerun()
                 else:
                     error_data = response.json()
                     st.error(f"Upload failed: {error_data.get('detail', 'Unknown error')}")
@@ -501,11 +539,15 @@ with tab2:
     else:
         st.warning("No contract uploaded yet. Upload one in the **Upload Contract** tab.")
 
-    # Question input
+    # Question input — use session key so it can be cleared
+    if "question_input" not in st.session_state:
+        st.session_state.question_input = ""
     question = st.text_input(
         "Your question",
+        value=st.session_state.question_input,
         placeholder="e.g., What are the termination conditions?",
         help="Ask a question about the uploaded contract",
+        key="question_widget",
     )
 
     # Ask button + advanced options on one row
@@ -541,6 +583,8 @@ with tab2:
             result = call_api(trigger_question, top_k)
         st.session_state.last_question = trigger_question
         st.session_state.last_result = result
+        st.session_state.question_input = ""
+        st.rerun()
 
     # ---- Display the answer immediately below input ----
     if st.session_state.last_result is not None:
