@@ -22,136 +22,6 @@ st.set_page_config(
 
 
 # ---------------------------------------------------------------------------
-# SVG Icon System (Feather-style icons, inline SVG)
-# ---------------------------------------------------------------------------
-_SVG_TPL = (
-    '<svg xmlns="http://www.w3.org/2000/svg" width="__SZ__" height="__SZ__" '
-    'viewBox="0 0 24 24" fill="__FILL__" stroke="__CLR__" stroke-width="2" '
-    'stroke-linecap="round" stroke-linejoin="round">__PATH__</svg>'
-)
-
-_ICON_PATHS = {
-    "file-text": (
-        '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>'
-        '<polyline points="14 2 14 8 20 8"/>'
-        '<line x1="16" y1="13" x2="8" y2="13"/>'
-        '<line x1="16" y1="17" x2="8" y2="17"/>'
-        '<line x1="10" y1="9" x2="8" y2="9"/>'
-    ),
-    "upload-cloud": (
-        '<polyline points="16 16 12 12 8 16"/>'
-        '<line x1="12" y1="12" x2="12" y2="21"/>'
-        '<path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/>'
-        '<polyline points="16 16 12 12 8 16"/>'
-    ),
-    "message-circle": (
-        '<path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 '
-        '8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 '
-        '8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>'
-    ),
-    "book-open": (
-        '<path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>'
-        '<path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>'
-    ),
-    "check-circle": (
-        '<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>'
-        '<polyline points="22 4 12 14.01 9 11.01"/>'
-    ),
-    "x-circle": (
-        '<circle cx="12" cy="12" r="10"/>'
-        '<line x1="15" y1="9" x2="9" y2="15"/>'
-        '<line x1="9" y1="9" x2="15" y2="15"/>'
-    ),
-    "alert-triangle": (
-        '<path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 '
-        '1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>'
-        '<line x1="12" y1="9" x2="12" y2="13"/>'
-        '<line x1="12" y1="17" x2="12.01" y2="17"/>'
-    ),
-    "info": (
-        '<circle cx="12" cy="12" r="10"/>'
-        '<line x1="12" y1="16" x2="12" y2="12"/>'
-        '<line x1="12" y1="8" x2="12.01" y2="8"/>'
-    ),
-    "search": (
-        '<circle cx="11" cy="11" r="8"/>'
-        '<line x1="21" y1="21" x2="16.65" y2="16.65"/>'
-    ),
-    "sliders": (
-        '<line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/>'
-        '<line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/>'
-        '<line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/>'
-        '<line x1="1" y1="14" x2="7" y2="14"/>'
-        '<line x1="9" y1="8" x2="15" y2="8"/>'
-        '<line x1="17" y1="16" x2="23" y2="16"/>'
-    ),
-    "zap": '<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>',
-    "clock": (
-        '<circle cx="12" cy="12" r="10"/>'
-        '<polyline points="12 6 12 12 16 14"/>'
-    ),
-    "shield": '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>',
-    "help-circle": (
-        '<circle cx="12" cy="12" r="10"/>'
-        '<path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>'
-        '<line x1="12" y1="17" x2="12.01" y2="17"/>'
-    ),
-    "code": (
-        '<polyline points="16 18 22 12 16 6"/>'
-        '<polyline points="8 6 2 12 8 18"/>'
-    ),
-    "layers": (
-        '<polygon points="12 2 2 7 12 12 22 7 12 2"/>'
-        '<polyline points="2 17 12 22 22 17"/>'
-        '<polyline points="2 12 12 17 22 12"/>'
-    ),
-    "target": (
-        '<circle cx="12" cy="12" r="10"/>'
-        '<circle cx="12" cy="12" r="6"/>'
-        '<circle cx="12" cy="12" r="2"/>'
-    ),
-    "heart": '<path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>',
-    "arrow-right": (
-        '<line x1="5" y1="12" x2="19" y2="12"/>'
-        '<polyline points="12 5 19 12 12 19"/>'
-    ),
-    "hash": (
-        '<line x1="4" y1="9" x2="20" y2="9"/>'
-        '<line x1="4" y1="15" x2="20" y2="15"/>'
-        '<line x1="10" y1="3" x2="8" y2="21"/>'
-        '<line x1="16" y1="3" x2="14" y2="21"/>'
-    ),
-    "chevron-down": '<polyline points="6 9 12 15 18 9"/>',
-    "arrow-down": (
-        '<line x1="12" y1="5" x2="12" y2="19"/>'
-        '<polyline points="19 12 12 19 5 12"/>'
-    ),
-}
-
-
-def svg(name, size=20, color="#555", fill="none"):
-    """Return inline SVG HTML for the named icon."""
-    path = _ICON_PATHS.get(name, "")
-    return (
-        _SVG_TPL
-        .replace("__SZ__", str(size))
-        .replace("__CLR__", color)
-        .replace("__FILL__", fill)
-        .replace("__PATH__", path)
-    )
-
-
-def section_header(icon_name, text, size=22, color="#1f2937"):
-    """Return HTML for a section header with an SVG icon."""
-    return (
-        f'<div class="section-header">'
-        f'{svg(icon_name, size=size, color=color)}'
-        f'<span>{text}</span>'
-        f'</div>'
-    )
-
-
-# ---------------------------------------------------------------------------
 # API Helper
 # ---------------------------------------------------------------------------
 def call_api(question, top_k=4):
@@ -172,12 +42,7 @@ def call_api(question, top_k=4):
 
 def display_answer(question, result):
     """Render the answer and sources for a given result dict."""
-    st.markdown(
-        f'<div class="card" style="border-left:4px solid #2563eb;">'
-        f'<div style="padding:4px 0;color:#374151;font-style:italic;margin-bottom:8px;">'
-        f'{svg("message-circle", size=16, color="#2563eb")} {question}</div></div>',
-        unsafe_allow_html=True,
-    )
+    st.markdown(f"> {question}")
 
     if not result.get("success"):
         st.error(result.get("error", "An unknown error occurred."))
@@ -261,23 +126,14 @@ st.markdown("""
 
 /* ---- Poppins font everywhere EXCEPT Material Icons ---- */
 html, body, .stApp,
-.stApp p, .stApp span, .stApp div, .stApp li, .stApp td, .stApp th,
+.stApp p, .stApp div, .stApp li, .stApp td, .stApp th,
 .stApp h1, .stApp h2, .stApp h3, .stApp h4, .stApp h5, .stApp h6,
-[class*="st-"]:not([class*="material"]),
 .stMarkdown, .stText,
 button, input, textarea, select, label,
 .stTabs [data-baseweb="tab"],
 [data-testid="stMetricValue"],
 [data-testid="stMetricLabel"] {
     font-family: 'Poppins', sans-serif !important;
-}
-/* Preserve Material Icons font for Streamlit's built-in icons */
-.material-symbols-rounded,
-.material-symbols-outlined,
-.material-icons,
-[data-testid="collapsedControl"] span,
-[data-testid="stSidebarCollapseButton"] span {
-    font-family: 'Material Symbols Rounded', 'Material Icons' !important;
 }
 
 /* ---- Global: white background everywhere, no black ---- */
@@ -289,15 +145,14 @@ section[data-testid="stSidebar"] {
     padding: 1.5rem 1rem !important;
 }
 section[data-testid="stSidebar"] p,
-section[data-testid="stSidebar"] span:not(.material-symbols-rounded):not(.material-symbols-outlined):not(.material-icons),
 section[data-testid="stSidebar"] li,
 section[data-testid="stSidebar"] label,
-section[data-testid="stSidebar"] div:not([data-testid="collapsedControl"]) {
+section[data-testid="stSidebar"] div {
     color: #1f2937 !important;
 }
 
 /* Force all text to dark on white */
-.stApp, .stApp p, .stApp span, .stApp li, .stApp label,
+.stApp, .stApp p, .stApp li, .stApp label,
 .stApp .stMarkdown, .stApp .stText {
     color: #1f2937 !important;
 }
@@ -416,20 +271,6 @@ details, details > summary,
     color: #374151 !important;
 }
 
-/* ---- Section headers with SVG icons ---- */
-.section-header {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-size: 1.25rem;
-    font-weight: 600;
-    color: #1f2937;
-    margin: 1rem 0 0.5rem 0;
-}
-.section-header svg {
-    flex-shrink: 0;
-}
-
 /* ---- Card / Box styling ---- */
 .card {
     background: #ffffff;
@@ -447,19 +288,7 @@ details, details > summary,
     margin-bottom: 16px;
 }
 
-/* ---- How-it-works flow (horizontal arrow steps) ---- */
-.flow-row {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0;
-    margin: 1.5rem 0;
-    flex-wrap: wrap;
-    background: #f9fafb;
-    border: 1px solid #e5e7eb;
-    border-radius: 12px;
-    padding: 24px 16px;
-}
+/* ---- How-it-works flow step cards ---- */
 .flow-step {
     display: flex;
     flex-direction: column;
@@ -497,35 +326,11 @@ details, details > summary,
     color: #6b7280;
     max-width: 180px;
 }
-.flow-arrow {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0 8px;
-    align-self: center;
-}
-.flow-arrow svg {
-    flex-shrink: 0;
-}
-/* Hide the arrow-down variant on desktop, show on mobile */
-.flow-arrow .arrow-down-mobile { display: none; }
-.flow-arrow .arrow-right-desktop { display: inline; }
-
 /* ---- Responsive ---- */
 @media (max-width: 768px) {
-    .flow-row {
-        flex-direction: column;
-        gap: 8px;
-        padding: 16px 12px;
-    }
     .flow-step {
         min-width: unset;
         width: 100%;
-    }
-    .flow-arrow .arrow-right-desktop { display: none; }
-    .flow-arrow .arrow-down-mobile { display: inline; }
-    .section-header {
-        font-size: 1.1rem;
     }
     .card { padding: 16px; }
 }
@@ -534,45 +339,8 @@ details, details > summary,
 section[data-testid="stSidebar"] .block-container {
     padding-top: 1rem !important;
 }
-section[data-testid="stSidebar"] .section-header {
-    font-size: 1.05rem;
-    margin: 0.8rem 0 0.4rem 0;
-}
 section[data-testid="stSidebar"] hr {
     margin: 1rem 0 !important;
-}
-
-/* ---- Feature list items in sidebar ---- */
-.feature-item {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 5px 0;
-    font-size: 0.88rem;
-    color: #1f2937;
-    line-height: 1.4;
-}
-
-/* ---- Contract status badge ---- */
-.status-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 6px 14px;
-    border-radius: 20px;
-    font-size: 0.88rem;
-    font-weight: 500;
-    margin-bottom: 12px;
-}
-.status-badge.loaded {
-    background: #ecfdf5;
-    color: #065f46;
-    border: 1px solid #a7f3d0;
-}
-.status-badge.empty {
-    background: #fef3c7;
-    color: #92400e;
-    border: 1px solid #fde68a;
 }
 
 /* ---- Footer ---- */
@@ -594,16 +362,6 @@ section[data-testid="stSidebar"] hr {
     margin-top: 2px;
 }
 
-/* ---- Ask-another prompt ---- */
-.ask-another {
-    text-align: center;
-    padding: 18px 0 8px 0;
-    color: #6b7280;
-    font-size: 0.92rem;
-}
-.ask-another strong {
-    color: #374151;
-}
 </style>
 """, unsafe_allow_html=True)
 
@@ -611,12 +369,7 @@ section[data-testid="stSidebar"] hr {
 # ---------------------------------------------------------------------------
 # Page Title
 # ---------------------------------------------------------------------------
-st.markdown(
-    f'<h1 style="display:flex;align-items:center;gap:12px;">'
-    f'{svg("file-text", size=32, color="#2563eb")} ContractIQ'
-    f'</h1>',
-    unsafe_allow_html=True,
-)
+st.markdown("# ContractIQ")
 st.markdown("*Trustworthy AI contract analysis with citation-first answers*")
 
 
@@ -624,55 +377,32 @@ st.markdown("*Trustworthy AI contract analysis with citation-first answers*")
 # Sidebar
 # ---------------------------------------------------------------------------
 with st.sidebar:
-    st.markdown(
-        f'<div style="text-align:center;margin-bottom:12px;">'
-        f'{svg("file-text", size=28, color="#2563eb")}'
-        f'<div style="font-size:1.1rem;font-weight:600;color:#1f2937;margin-top:4px;">ContractIQ</div>'
-        f'</div>',
-        unsafe_allow_html=True,
-    )
-
-    st.markdown(
-        '<p style="font-size:0.85rem;color:#4b5563;line-height:1.6;margin:0;">'
-        'AI-powered contract analysis with retrieval-augmented generation. '
-        'Every answer cites specific clauses.</p>',
-        unsafe_allow_html=True,
+    st.markdown("### ContractIQ")
+    st.caption(
+        "AI-powered contract analysis with retrieval-augmented generation. "
+        "Every answer cites specific clauses."
     )
 
     st.divider()
 
     st.markdown("**How It Works**")
-    steps = [
-        ("1", "Upload a PDF contract"),
-        ("2", "Wait for processing"),
-        ("3", "Ask questions"),
-        ("4", "Verify cited clauses"),
-    ]
-    for num, step in steps:
-        st.markdown(
-            f'<div style="display:flex;align-items:center;gap:8px;padding:3px 0;font-size:0.85rem;">'
-            f'<span style="display:inline-flex;align-items:center;justify-content:center;'
-            f'width:22px;height:22px;border-radius:50%;background:#2563eb;color:#fff;'
-            f'font-size:0.72rem;font-weight:600;flex-shrink:0;">{num}</span>'
-            f'<span style="color:#374151;">{step}</span></div>',
-            unsafe_allow_html=True,
-        )
+    st.markdown("""
+1. Upload a PDF contract
+2. Wait for processing
+3. Ask questions
+4. Verify cited clauses
+    """)
 
     st.divider()
 
     st.markdown("**Features**")
-    features = [
-        "Citation enforcement",
-        "Hallucination blocking",
-        "Intent-aware retrieval",
-        "Sub-clause chunking",
-        "Production API",
-    ]
-    for feat in features:
-        st.markdown(
-            f'<div class="feature-item">{svg("check-circle", size=14, color="#16a34a")} {feat}</div>',
-            unsafe_allow_html=True,
-        )
+    st.markdown("""
+- Citation enforcement
+- Hallucination blocking
+- Intent-aware retrieval
+- Sub-clause chunking
+- Production API
+    """)
 
 
 # ---------------------------------------------------------------------------
@@ -683,39 +413,41 @@ tab1, tab2 = st.tabs(["Upload Contract", "Ask Questions"])
 
 # ===== TAB 1: Upload Contract =====
 with tab1:
-    st.markdown(section_header("upload-cloud", "Get Started"), unsafe_allow_html=True)
+    st.markdown("### Get Started")
     st.markdown(
-        '<div class="card-muted" style="margin-top:8px;">'
-        '<p style="margin:0 0 4px 0;">Upload a contract PDF and start asking questions in seconds. '
-        "Here's how it works:</p></div>",
-        unsafe_allow_html=True,
+        "Upload a contract PDF and start asking questions in seconds. "
+        "Here's how it works:"
     )
 
-    # Horizontal arrow-connected flow
-    st.markdown(f"""
-    <div class="flow-row">
-        <div class="flow-step">
-            <div class="flow-num">1</div>
-            <div style="margin-bottom:6px;">{svg("upload-cloud", size=28, color="#2563eb")}</div>
-            <div class="flow-title">You upload a PDF</div>
-            <div class="flow-desc">Select any contract PDF from your device.</div>
-        </div>
-        <div class="flow-arrow"><span class="arrow-right-desktop">{svg("arrow-right", size=24, color="#9ca3af")}</span><span class="arrow-down-mobile">{svg("arrow-down", size=24, color="#9ca3af")}</span></div>
-        <div class="flow-step">
-            <div class="flow-num">2</div>
-            <div style="margin-bottom:6px;">{svg("clock", size=28, color="#2563eb")}</div>
-            <div class="flow-title">We process it</div>
-            <div class="flow-desc">Text extraction, clause detection, and indexing happen automatically.</div>
-        </div>
-        <div class="flow-arrow"><span class="arrow-right-desktop">{svg("arrow-right", size=24, color="#9ca3af")}</span><span class="arrow-down-mobile">{svg("arrow-down", size=24, color="#9ca3af")}</span></div>
-        <div class="flow-step">
-            <div class="flow-num">3</div>
-            <div style="margin-bottom:6px;">{svg("message-circle", size=28, color="#2563eb")}</div>
-            <div class="flow-title">You ask questions</div>
-            <div class="flow-desc">Get cited answers grounded in the actual contract text.</div>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
+    # Step-by-step flow using Streamlit columns
+    c1, c2, c3 = st.columns(3)
+    with c1:
+        st.markdown(
+            '<div class="flow-step">'
+            '<div class="flow-num">1</div>'
+            '<div class="flow-title">You upload a PDF</div>'
+            '<div class="flow-desc">Select any contract PDF from your device.</div>'
+            '</div>',
+            unsafe_allow_html=True,
+        )
+    with c2:
+        st.markdown(
+            '<div class="flow-step">'
+            '<div class="flow-num">2</div>'
+            '<div class="flow-title">We process it</div>'
+            '<div class="flow-desc">Text extraction, clause detection, and indexing.</div>'
+            '</div>',
+            unsafe_allow_html=True,
+        )
+    with c3:
+        st.markdown(
+            '<div class="flow-step">'
+            '<div class="flow-num">3</div>'
+            '<div class="flow-title">You ask questions</div>'
+            '<div class="flow-desc">Get cited answers from the contract text.</div>'
+            '</div>',
+            unsafe_allow_html=True,
+        )
 
     st.divider()
 
@@ -757,28 +489,17 @@ with tab1:
 
 # ===== TAB 2: Ask Questions =====
 with tab2:
-    st.markdown(section_header("message-circle", "Ask Questions"), unsafe_allow_html=True)
-    # Contract status + description card
-    if st.session_state.contract_uploaded:
-        status_html = (
-            f'<div class="status-badge loaded">'
-            f'{svg("check-circle", size=16, color="#065f46")} '
-            f'Contract loaded: {st.session_state.contract_filename}</div>'
-        )
-    else:
-        status_html = (
-            f'<div class="status-badge empty">'
-            f'{svg("alert-triangle", size=16, color="#92400e")} '
-            f'No contract uploaded yet. Upload one in the Upload Contract tab.</div>'
-        )
-
+    st.markdown("### Ask Questions")
     st.markdown(
-        f'<div class="card">'
-        f'<p style="margin:0 0 10px 0;">Ask any question about your uploaded contract. '
-        f'Answers will cite specific clauses from the document.</p>'
-        f'{status_html}</div>',
-        unsafe_allow_html=True,
+        "Ask any question about your uploaded contract. "
+        "Answers will cite specific clauses from the document."
     )
+
+    # Contract status
+    if st.session_state.contract_uploaded:
+        st.success(f"Contract loaded: {st.session_state.contract_filename}")
+    else:
+        st.warning("No contract uploaded yet. Upload one in the **Upload Contract** tab.")
 
     # Question input
     question = st.text_input(
@@ -824,15 +545,10 @@ with tab2:
     # ---- Display the answer immediately below input ----
     if st.session_state.last_result is not None:
         st.divider()
-        st.markdown(section_header("zap", "Answer"), unsafe_allow_html=True)
+        st.markdown("**Answer**")
         display_answer(st.session_state.last_question, st.session_state.last_result)
 
-        # "Ask another question" prompt
-        st.markdown(
-            '<div class="ask-another"><strong>Want to explore more?</strong> '
-            'Try one of these questions or type your own above.</div>',
-            unsafe_allow_html=True,
-        )
+        st.caption("**Want to explore more?** Try one of these questions or type your own above.")
 
     # ---- Example / suggestion questions ----
     examples = [
@@ -845,12 +561,8 @@ with tab2:
 
     if st.session_state.last_result is None:
         st.divider()
-        st.markdown(section_header("help-circle", "Example Questions"), unsafe_allow_html=True)
-        st.markdown(
-            '<div class="card-muted"><p style="margin:0;font-size:0.9rem;color:#6b7280;">'
-            'Not sure what to ask? Click any question below to get an instant answer.</p></div>',
-            unsafe_allow_html=True,
-        )
+        st.markdown("**Example Questions**")
+        st.caption("Not sure what to ask? Click any question below to get an instant answer.")
 
     # 2-column layout, full question text
     ex_cols = st.columns(2)
@@ -866,11 +578,11 @@ with tab2:
 # ---------------------------------------------------------------------------
 st.divider()
 st.markdown(
-    f'<div class="footer">'
-    f'ContractIQ v1.0.0 &middot; Built with {svg("heart", size=14, color="#ef4444", fill="#ef4444")} by Rohit Kumar Dubey'
-    f'<div class="tech-stack">FastAPI &middot; Streamlit &middot; ChromaDB &middot; '
-    f'sentence-transformers &middot; Groq LLM &middot; pdfplumber</div>'
-    f'</div>',
+    '<div class="footer">'
+    'ContractIQ v1.0.0 · Built with ❤️ by Rohit Kumar Dubey'
+    '<div class="tech-stack">FastAPI · Streamlit · ChromaDB · '
+    'sentence-transformers · Groq LLM · pdfplumber</div>'
+    '</div>',
     unsafe_allow_html=True,
 )
 
