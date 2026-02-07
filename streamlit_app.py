@@ -6,6 +6,7 @@ import os
 import time
 import threading
 import streamlit as st
+import streamlit.components.v1 as components
 import requests
 
 # Configure for HuggingFace Spaces
@@ -437,12 +438,12 @@ tab1, tab2 = st.tabs(["Upload Contract", "Ask Questions"])
 # Handle tab switch request from upload page
 if st.session_state.get("switch_to_ask"):
     st.session_state.switch_to_ask = False
-    st.markdown(
+    components.html(
         '<script>'
         'const tabs = window.parent.document.querySelectorAll("[data-baseweb=\\"tab\\"]");'
         'if (tabs.length >= 2) tabs[1].click();'
         '</script>',
-        unsafe_allow_html=True,
+        height=0,
     )
 
 
@@ -600,7 +601,6 @@ with tab2:
         "What law governs this agreement?",
         "How is personal data handled?",
         "What are the payment terms?",
-        "What are the liability limits?",
     ]
 
     if st.session_state.last_result is None:
