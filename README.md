@@ -8,7 +8,6 @@ sdk_version: "1.53.1"
 python_version: "3.11"
 app_file: streamlit_app.py
 pinned: false
-license: mit
 tags:
   - rag
   - legal
@@ -31,9 +30,8 @@ tags:
 [![Python](https://img.shields.io/badge/Python-3.11-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
 [![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
 [![Streamlit](https://img.shields.io/badge/Streamlit-FF4B4B?style=for-the-badge&logo=streamlit&logoColor=white)](https://streamlit.io)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](LICENSE)
 
-**Upload a contract. Ask a question. Get a cited, verified answer — or an honest refusal.**
+**Upload a contract. Ask a question. Get a cited, verified answer or an honest refusal.**
 
 </div>
 
@@ -41,33 +39,34 @@ tags:
 
 ## The Problem
 
-Legal contracts are dense, lengthy documents filled with nested clauses, cross-references, and domain-specific language. Reviewing a 50-page service agreement to find a specific termination condition, liability cap, or data protection obligation is painfully time-consuming.
+Let's be real: nobody enjoys reading a 50-page legal contract word by word. But that's exactly what lawyers, procurement teams, and business owners have to do every single day just to find one termination clause or a liability cap buried somewhere on page 37.
 
-Generic AI chatbots make this worse:
-- They **hallucinate** — confidently stating terms that don't exist in the document
-- They **omit citations** — giving answers with no way to verify the source
-- They **paraphrase loosely** — drifting from the actual legal language, which can change the meaning entirely
+And here's the frustrating part. When you try using AI chatbots to speed things up, they actually make it worse:
 
-**There is no lightweight, trustworthy tool that guarantees every answer is grounded strictly in the document's own text.**
+- They **hallucinate**: confidently telling you about terms that don't even exist in the document
+- They **skip citations**: giving you answers with absolutely no way to verify where they got that from
+- They **paraphrase too loosely**: subtly changing the legal language, which in a contract can mean something completely different
+
+The bottom line? There was no lightweight, trustworthy tool that could guarantee every answer comes straight from the document itself. So we built one.
 
 ---
 
 ## The Solution
 
-ContractIQ is a RAG (Retrieval-Augmented Generation) system that lets you upload a PDF contract and ask natural-language questions. Every answer is:
+ContractIQ is a RAG (Retrieval-Augmented Generation) system that lets you upload a PDF contract and ask questions in plain English. But here's what makes it different from just throwing your contract at ChatGPT:
 
-- **Cited** — responses begin with `According to [Clause X]...` pointing to the exact source
-- **Grounded** — answers are drawn exclusively from the uploaded document, never from the LLM's training data
-- **Hallucination-blocked** — a post-generation verification layer checks semantic similarity between the answer and retrieved context; if the answer isn't grounded, it's rejected and replaced with an explicit refusal
-- **Bullet-formatted** — answers are structured as bullet points for easy reading
+- **Every answer is cited**: responses always start with `According to [Clause X]...` so you know exactly where to look
+- **Strictly grounded**: answers come only from your uploaded document, never from the LLM's training data
+- **Hallucination blocking built in**: a post-generation verification layer actually checks whether the answer is semantically grounded in the retrieved context. If it's not? The answer gets rejected entirely and replaced with an honest refusal
+- **Clean bullet-point formatting**: no walls of text, just structured, scannable answers
 
-> ContractIQ follows a **"refuse rather than fabricate"** philosophy. If the contract doesn't contain the answer, it says so.
+> The philosophy here is simple: **refuse rather than fabricate.** If the contract doesn't say it, ContractIQ won't make it up.
 
 ---
 
 ## How It Works
 
-ContractIQ operates as a **6-stage pipeline**:
+ContractIQ runs on a **6-stage pipeline**, and each stage has a very specific job:
 
 ```
 PDF Upload --> Clause-Aware --> Embedding & --> Intent-Aware --> Citation-First --> Post-Generation
@@ -75,36 +74,36 @@ PDF Upload --> Clause-Aware --> Embedding & --> Intent-Aware --> Citation-First 
 ```
 
 ### Stage 1: PDF Ingestion
-The uploaded PDF is parsed page-by-page using `pdfplumber`, extracting raw text while preserving page boundaries.
+The uploaded PDF gets parsed page by page using `pdfplumber`. Nothing fancy here, just clean text extraction while keeping track of which page each piece of text came from.
 
 ### Stage 2: Clause-Aware Chunking
-Unlike naive fixed-size chunking, ContractIQ uses a custom clause-aware chunker:
-- Detects clause headings via regex patterns (e.g., `10.2 TERMINATION`)
-- Maps clauses to legal categories (Termination, Liability, Payment, Data Protection, etc.)
-- Splits long clauses into sub-clauses for finer granularity
-- Enriches each chunk with semantic metadata — clause title, number, and keywords
+This is where things get interesting. Instead of blindly chopping the document into fixed-size chunks (which almost always cuts clauses in half), ContractIQ uses a custom clause-aware chunker that actually understands contract structure:
+- It detects clause headings using regex patterns (things like `10.2 TERMINATION`)
+- It maps each clause to a legal category: Termination, Liability, Payment, Data Protection, and so on
+- Long clauses get split further into sub-clauses for finer granularity
+- Each chunk is enriched with semantic metadata: the clause title, number, and relevant keywords get prepended to the text before embedding
 
 ### Stage 3: Embedding & Storage
-Each enriched chunk is embedded using `all-MiniLM-L6-v2` sentence-transformer and stored in ChromaDB for fast similarity search.
+Each enriched chunk gets converted into a vector using the `all-MiniLM-L6-v2` sentence-transformer model and stored in ChromaDB for fast similarity search later.
 
 ### Stage 4: Intent-Aware Retrieval
-When a question is asked, the retriever:
-- **Expands** the query with semantic variations (e.g., "termination" also searches "cancellation", "end the contract")
-- **Detects intent** via cosine similarity against pre-computed intent template embeddings
-- **Retrieves** candidate chunks from ChromaDB for each query variation
-- **Re-ranks** using intent-aware similarity boosting — chunks whose clause title matches the detected intent get a relevance boost
+When you ask a question, the retriever doesn't just do a simple similarity search. It goes through a multi-step process:
+- **Query expansion**: your question gets expanded with semantic variations. So "termination" also searches for "cancellation", "end the contract", and similar phrases
+- **Intent detection**: the system figures out what type of legal question you're asking by comparing your query embedding against pre-computed intent template embeddings
+- **Multi-query retrieval**: candidate chunks are pulled from ChromaDB for each query variation
+- **Intent-aware re-ranking**: chunks whose clause title matches the detected intent get a relevance boost, so the most relevant clauses float to the top
 
 ### Stage 5: Citation-First Generation
-Top-k chunks are assembled into a strict citation-first prompt sent to the LLM. The prompt enforces:
+The top-k retrieved chunks are assembled into a strict prompt and sent to Groq's Llama 3.1 8B model. The prompt is very opinionated about formatting:
 - Every answer must begin with `According to [Clause X]...`
-- Bullet-point formatting for readability
-- No paraphrasing beyond what is directly stated
-- Hard refusal if information isn't found
+- Information must be presented as bullet points
+- No paraphrasing beyond what's directly stated in the contract
+- If the information isn't there, the model must refuse
 
 ### Stage 6: Post-Generation Verification
-Before returning the answer, two checks run:
-1. **Citation enforcement** — if the response lacks a citation and isn't a refusal, it's forcibly replaced with a refusal
-2. **Hallucination blocking** — the answer is embedded and compared against retrieved context via cosine similarity; if grounding similarity falls below the threshold, the answer is blocked
+Here's the safety net. Before the answer reaches you, two verification checks run:
+1. **Citation enforcement**: if the LLM's response doesn't have a proper citation and isn't a refusal, it gets forcibly replaced with a refusal message. No exceptions
+2. **Hallucination blocking**: the answer is embedded and compared against the retrieved context using cosine similarity. If the grounding score falls below 0.6, the answer is blocked entirely
 
 ---
 
@@ -153,21 +152,21 @@ contractiq-rag/
 
 | Layer | Technology | Purpose |
 |:------|:-----------|:--------|
-| **Frontend** | Streamlit | Interactive UI — file upload, question input, answer display |
-| **Backend API** | FastAPI | RESTful API with `/upload` and `/ask` endpoints |
+| **Frontend** | Streamlit | Interactive UI for uploading contracts and asking questions |
+| **Backend API** | FastAPI | RESTful API powering the `/upload` and `/ask` endpoints |
 | **PDF Parsing** | pdfplumber | Page-by-page text extraction from PDF contracts |
 | **Chunking** | Custom clause chunker | Clause-aware splitting with semantic enrichment |
-| **Embeddings** | sentence-transformers (`all-MiniLM-L6-v2`) | Text-to-vector conversion for semantic search |
-| **Vector Database** | ChromaDB | Storage and similarity search for document chunks |
-| **LLM** | Groq (`llama-3.1-8b-instant`) | Fast inference for answer generation |
-| **Hallucination Detection** | scikit-learn (cosine similarity) | Embedding-based grounding verification |
+| **Embeddings** | sentence-transformers (`all-MiniLM-L6-v2`) | Converts text into vectors for semantic search |
+| **Vector Database** | ChromaDB | Stores and retrieves document chunks by similarity |
+| **LLM** | Groq (`llama-3.1-8b-instant`) | Fast inference for generating cited answers |
+| **Hallucination Detection** | scikit-learn (cosine similarity) | Verifies that answers are actually grounded in the source |
 | **Deployment** | Hugging Face Spaces | Cloud hosting with Streamlit SDK |
 
 ---
 
 ## API Reference
 
-ContractIQ exposes a full REST API alongside the Streamlit UI.
+ContractIQ isn't just a UI. It also exposes a full REST API, so you can integrate it into your own workflows.
 
 ### Health Check
 ```http
@@ -259,63 +258,63 @@ cp .env.example .env
 ### Running Locally
 
 ```bash
-# Start the application (launches both Streamlit UI and FastAPI backend)
+# This launches both the Streamlit UI and the FastAPI backend in one go
 streamlit run streamlit_app.py
 ```
 
-The Streamlit UI will be available at `http://localhost:8501` and the FastAPI backend at `http://localhost:8000/api/docs`.
+Once it's running, the Streamlit UI will be at `http://localhost:8501` and the FastAPI docs at `http://localhost:8000/api/docs`.
 
 ---
 
 ## Deployment
 
-ContractIQ is deployed on **Hugging Face Spaces** with the Streamlit SDK. The `streamlit_app.py` entry point launches a background FastAPI server thread and the Streamlit frontend in a single process.
+ContractIQ is deployed on **Hugging Face Spaces** using the Streamlit SDK. The `streamlit_app.py` entry point spins up a FastAPI server in a background thread and runs the Streamlit frontend, all in a single process.
 
-To deploy your own instance:
+Want to deploy your own instance? Here's how:
 1. Create a new Space on [Hugging Face](https://huggingface.co/new-space) with **Streamlit** SDK
 2. Add your `GROQ_API_KEY` as a Space secret
-3. Push the repository to the Space
+3. Push the repository to the Space, and you're good to go
 
 ---
 
 ## Limitations
 
-- **PDF-only** — no support for Word, scanned images, or OCR
-- **Single document** — analyzes one contract at a time; no multi-document comparison
-- **Regex-based clause detection** — contracts with non-standard formatting may have clauses mis-classified
-- **No table extraction** — tabular data (pricing schedules, SLA matrices) loses structure
-- **English-only** — embeddings, intent templates, and prompts are tuned for English
-- **In-memory vector store** — uploaded contracts don't survive container restarts on free tier
-- **Free-tier constraints** — cold starts take several minutes; Groq has rate limits
+Being honest about what this can't do (yet):
+
+- **PDF only**: it currently handles PDF contracts. Word docs, scanned images, and OCR are not supported
+- **One document at a time**: you can't upload multiple contracts and ask comparative questions across them
+- **Clause detection relies on regex**: if a contract has unusual heading formats, some clauses might get lumped under "GENERAL"
+- **Tables lose their structure**: pricing schedules, SLA matrices, and other tabular data get flattened into plain text
+- **English only**: the embedding model, intent templates, and prompts are all built for English-language contracts
+- **No persistence on free tier**: since ChromaDB runs in-memory, uploaded contracts don't survive container restarts
+- **Free-tier rate limits**: cold starts on Hugging Face take a few minutes, and Groq's free plan has API rate limits
 
 ---
 
 ## Key Learnings
 
-- **Prompt engineering alone is not enough** — even with meticulous citation-first prompts, the LLM occasionally ignores instructions. Post-generation verification is essential, not optional.
-- **Chunking strategy matters more than model choice** — clause-aware chunking with semantic enrichment dramatically outperformed naive fixed-size chunking.
-- **Query expansion is a cheap win** — expanding "termination" to also search "cancellation" and "end the contract" significantly improved retrieval recall.
-- **Intent-aware retrieval beats raw similarity** — boosting chunks whose clause title matches the detected query intent consistently surfaced the right clauses.
-- **"Refuse rather than fabricate" builds trust** — users trust a system that says "the contract doesn't specify this" far more than one that confidently fabricates an answer.
+Building this taught us a few things the hard way:
+
+- **Prompt engineering alone won't save you.** Even with a carefully crafted citation-first prompt, the LLM still occasionally ignored instructions and produced uncited answers. That's exactly why post-generation verification exists: it's not a nice-to-have, it's essential.
+- **Chunking strategy matters way more than model choice.** We spent a lot of time trying different LLMs, but the single biggest improvement came from switching to clause-aware chunking with semantic enrichment. Get the retrieval right, and even a small model produces great answers.
+- **Query expansion is a surprisingly cheap win.** A user asking "What are the termination conditions?" would miss chunks that say "cancellation" or "end the contract." Adding semantic query expansion fixed this with almost zero overhead.
+- **Pure embedding similarity isn't always enough.** Sometimes irrelevant clauses scored higher in raw cosine similarity than the correct ones. Adding intent detection and clause-title boosting reliably fixed the ranking.
+- **Users trust honesty over confidence.** A system that says "the contract doesn't specify this" earns far more trust than one that confidently makes something up. Hard refusal is a feature, not a limitation.
 
 ---
 
 ## Future Scope
 
-- **Multi-format support** — Word documents, scanned contracts via OCR
-- **Multi-document analysis** — comparative questions across contracts
-- **Table extraction** — preserve structured data like pricing schedules
-- **Conversational memory** — follow-up questions without re-stating context
-- **Fine-tuned embeddings** — domain-specific model trained on legal data
-- **Confidence scoring** — display reliability scores alongside answers
-- **Clause-level summarization** — auto-generated structured summaries on upload
-- **Multilingual support** — extend to non-English contracts
+There's a lot more we'd love to build on top of this:
 
----
-
-## License
-
-This project is licensed under the MIT License.
+- **Multi-format support**: handle Word documents, scanned contracts via OCR, and HTML agreements
+- **Multi-document analysis**: upload several contracts and ask comparative questions like "Which one has a longer notice period?"
+- **Table extraction**: properly parse and preserve structured data like pricing schedules and SLA tables
+- **Conversational memory**: let users ask follow-up questions like "What about for the second party?" without re-stating the full context
+- **Fine-tuned embeddings**: train the embedding model on legal contract data for even better domain-specific retrieval
+- **Confidence scoring**: show a reliability score alongside each answer so users can gauge how well-grounded it is
+- **Clause-level summarization**: automatically generate a structured summary of the entire contract (key dates, parties, obligations, risks) right after upload
+- **Multilingual support**: extend to contracts written in other languages using multilingual embedding models
 
 ---
 
